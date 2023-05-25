@@ -10,7 +10,7 @@ from typing import Union
 
 from nesk.core.NeskError import HTTPError
 from nesk.core.NeskError import JSONDecodeError
-from nesk.core.NeskError import NeskError
+from nesk.core.NeskError import NeskException
 from nesk.core.NeskError import URLError
 
 
@@ -30,24 +30,20 @@ class Nesk:
         self,
         method: str,
         url: str,
-        headers: MutableMapping[str, str] | None = None,
+        headers: Optional[MutableMapping[str, str]] = None,
         data: Optional[Dict[str, Any]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         try:
             if self.base_url.endswith("/"):
                 base_url = self.base_url + url.lstrip("/")
             else:
                 base_url = self.base_url + "/" + url.lstrip("/")
 
-            print(base_url)
-
-            new_headers: Optional[MutableMapping[str, str]] = dict(
+            new_headers: MutableMapping[str, str] = dict(
                 self.headers)
 
             if headers:
                 new_headers.update(headers)
-
-            print(new_headers)
 
             request = urllib.request.Request(
                 base_url,
@@ -64,20 +60,19 @@ class Nesk:
             raise HTTPError(e.code, e.reason)
 
         except urllib.error.URLError as e:
-            raise URLError(e.reason)
+            raise URLError(str(e.reason))
 
         except json.JSONDecodeError as e:
             raise JSONDecodeError(e)
 
         except Exception as e:
-            print("Exception:", e)
-            return e
+            raise NeskException(str(e))
 
     def get(
         self,
         url: str,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("GET", url, headers)
 
     def post(
@@ -85,7 +80,7 @@ class Nesk:
         url: str,
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("POST", url, headers, data)
 
     def put(
@@ -93,7 +88,7 @@ class Nesk:
         url: str,
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("PUT", url, headers, data)
 
     def patch(
@@ -101,26 +96,26 @@ class Nesk:
         url: str,
         data: Optional[Dict[str, Any]] = None,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("PATCH", url, headers, data)
 
     def delete(
         self,
         url: str,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("DELETE", url, headers)
 
     def head(
         self,
         url: str,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("HEAD", url, headers)
 
     def options(
         self,
         url: str,
         headers: Optional[MutableMapping[str, str]] = None
-    ) -> Union[Dict[str, Any], Exception, Dict]:
+    ) -> Union[Dict[str, Any], Dict]:
         return self.__request("OPTIONS", url, headers)
